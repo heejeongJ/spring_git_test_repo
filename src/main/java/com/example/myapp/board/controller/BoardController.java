@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 import org.jsoup.Jsoup;
@@ -19,10 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -46,15 +44,34 @@ public class BoardController {
 	public String getListByCategory(@PathVariable int categoryId, @PathVariable int page, HttpSession session, Model model) {
 		session.setAttribute("page", page);
 		model.addAttribute("categoryId", categoryId);
+
 		List<Board> boardList = boardService.selectArticleListByCategory(categoryId, page);
 		model.addAttribute("boardList", boardList);
+
 		int bbsCount = boardService.selectTotalArticleCountByCategoryId(categoryId);
 		int totalPage = 0;
-		if(bbsCount > 0) {
-			totalPage= (int)Math.ceil(bbsCount/10.0);
+		if (bbsCount > 0) {
+			totalPage = (int) Math.ceil(bbsCount / 10.0);
 		}
+		int totalPageBlock = (int) Math.ceil(totalPage / 10.0);
+		int nowPageBlock = (int) Math.ceil(page / 10.0);
+
+		int startPage = (nowPageBlock - 1) * 10 + 1;
+
+		int endPage = 0;
+		if (totalPage > nowPageBlock * 10) {
+			endPage = nowPageBlock * 10;
+		} else {
+			endPage = totalPage;
+		}
+
 		model.addAttribute("totalPageCount", totalPage);
-		model.addAttribute("page", page);
+		model.addAttribute("nowPage", page);
+		model.addAttribute("totalPageBlock", totalPageBlock);
+		model.addAttribute("nowPageBlock", nowPageBlock);
+		model.addAttribute("startPage", startPage);
+		model.addAttribute("endPage", endPage);
+
 		return "board/list";
 	}
 
@@ -66,6 +83,12 @@ public class BoardController {
 	@RequestMapping("/board/{boardId}/{page}")
 	public String getBoardDetails(@PathVariable int boardId, @PathVariable int page, Model model) {
 		Board board = boardService.selectArticle(boardId);
+		String fileName = board.getFileName();
+		if (fileName != null) {
+			int fileLength = fileName.length();
+			String fileType = fileName.substring(fileLength-4, fileLength).toUpperCase();
+			model.addAttribute("fileType", fileType);
+		}
 		model.addAttribute("board", board);
 		model.addAttribute("page", page);
 		model.addAttribute("categoryId", board.getCategoryId());
@@ -240,25 +263,54 @@ public class BoardController {
 		}
 	}
 
-	@RequestMapping("/board/search/{page}")
-	public String search(@RequestParam(required=false, defaultValue="") String keyword, @PathVariable int page, HttpSession session, Model model) {
+	@GetMapping("/board/search/{page}")
+	public String search(@RequestParam(required = false, defaultValue = "") String keyword,
+						 @PathVariable int page,
+						 HttpSession session,
+						 Model model) {
+
 		try {
 			List<Board> boardList = boardService.searchListByContentKeyword(keyword, page);
 			model.addAttribute("boardList", boardList);
-			int bbsCount = boardService.selectTotalArticleCountByKeyword(keyword);
-			int totalPage = 0;
 
-			if(bbsCount > 0) {
-				totalPage= (int)Math.ceil(bbsCount/10.0);
+			int bbsCount = boardService.selectTotalArticleCountByKeyword(keyword);
+
+			int totalPage = 0;
+			if (bbsCount > 0) {
+				totalPage = (int) Math.ceil(bbsCount / 10.0);
 			}
-			model.addAttribute("totalPageCount", totalPage);
-			model.addAttribute("page", page);
+
+			int totalPageBlock = (int) Math.ceil(totalPage / 10.0);
+			int nowPageBlock = (int) Math.ceil(page / 10.0);
+
+			int startPage = (nowPageBlock - 1) * 10 + 1;
+
+			int endPage = 0;
+			if (totalPage > nowPageBlock * 10) {
+				endPage = nowPageBlock * 10;
+			} else {
+				endPage = totalPage;
+			}
+
 			model.addAttribute("keyword", keyword);
-			logger.info(totalPage + ":" + page + ":" + keyword);
-		} catch(Exception e) {
+			model.addAttribute("totalPageCount", totalPage);
+			model.addAttribute("nowPage", page);
+			model.addAttribute("totalPageBlock", totalPageBlock);
+			model.addAttribute("nowPageBlock", nowPageBlock);
+			model.addAttribute("startPage", startPage);
+			model.addAttribute("endPage", endPage);
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
 		return "board/search";
 	}
-
+	@ExceptionHandler({RuntimeException.class})
+	public String error(HttpServletRequest request, Exception ex, Model model) {
+		model.addAttribute("exception", ex);
+		model.addAttribute("stackTrace", ex.getStackTrace());
+		model.addAttribute("url", request.getRequestURI());
+		return "error/runtime";
+	}
 }
