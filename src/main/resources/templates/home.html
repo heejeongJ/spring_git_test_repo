@@ -28,55 +28,64 @@
     </div>
 
     <div class="content">
-        <div class="alert alert-warning page-header">
-            <h3 th:text="#{home.message}">Welcome</h3>
-            <h3>request 데이터 : <span th:text="#{message}"></span></h3>
+
+        <!-- Hero 영역 -->
+        <div class="jumbotron text-center">
+            <h2 th:text="#{home.message}">환영합니다</h2>
+            <p class="text-muted">
+                Request 데이터 :
+                <span th:text="#{home.message}"></span>
+            </p>
         </div>
 
-        <div class="row">
-            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
-                <a th:href="@{/board/cat/1}">카테고리 1번 게시판</a><br>
-                <a th:href="@{/board/cat/2}">카테고리 2번 게시판</a><br>
-                <a th:href="@{/board/cat/3}">카테고리 3번 게시판</a><br>
+        <!-- 카드 영역 -->
+        <div class="row text-center">
+
+            <div class="col-md-4">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">게시판</div>
+                    <div class="panel-body">
+                        <a th:each="cat : ${categoryList}"
+                           th:href="@{/board/cat/{id}(id=${cat.categoryId})}"
+                           th:text="${cat.categoryName}"
+                           class="btn btn-default btn-block">
+                        </a>
+                    </div>
+                </div>
             </div>
 
-            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
-                여기에 아무거나 입력해 놓으세요,
+            <div class="col-md-4">
+                <div class="panel panel-success">
+                    <div class="panel-heading">
+                        <strong>서비스 소개</strong>
+                    </div>
+                    <div class="panel-body">
+
+                        <p>이 프로젝트는 스프링 부트로 만든 웹 애플리케이션입니다.</p>
+                        <p>글 작성, 수정, 파일 업로드 등의 기능을 사용할 수 있습니다.</p>
+
+                        <hr>
+
+                        <a href="https://languid-litter-4b0.notion.site/33789272fad28020830ef2a991591549?source=copy_link"
+                           class="btn btn-success btn-block"
+                           target="_blank">
+                            프로젝트 설명 보러 가기
+                        </a>
+                    </div>
+                </div>
             </div>
 
-            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
-                여기에 아무거나 입력해 놓으세요,
+            <div class="col-md-4">
+                <div class="panel panel-info">
+                    <div class="panel-heading">이미지</div>
+                    <div class="panel-body">
+                        <img th:src="@{/images/web.png}" class="img-responsive center-block" style="max-height:150px;">
+                    </div>
+                </div>
             </div>
+
         </div>
 
-        <div class="progress">
-            <div class="progress-bar progress-bar-danger"
-                 role="progressbar"
-                 aria-valuenow="100"
-                 aria-valuemin="0"
-                 aria-valuemax="100"
-                 style="width: 100%;">
-                <span class="sr-only"></span>
-            </div>
-        </div>
-
-        <div class="progress">
-            <div class="progress-bar progress-bar-warning"
-                 role="progressbar"
-                 aria-valuenow="100"
-                 aria-valuemin="0"
-                 aria-valuemax="100"
-                 style="width: 100%;">
-                <span class="sr-only"></span>
-            </div>
-        </div>
-
-        <div class="alert alert-info">
-            <ol>
-                <li>여기에 아무거나 입력해 놓으세요,</li>
-                <li><img th:src="@{/images/web.png}"></li>
-            </ol>
-        </div>
     </div>
 </div>
 
